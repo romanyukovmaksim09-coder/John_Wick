@@ -1,13 +1,11 @@
 import java.awt.*;
-import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 
 class Bullet {
     private int x, y;
     private int lastX, lastY;
     private double angle;
-    private final double speed = 150.0;
+    private final double speed = 100.0;
     private boolean active = true;
     private BufferedImage image;
     private int id;
