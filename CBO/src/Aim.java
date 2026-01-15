@@ -25,6 +25,9 @@ class Aim {
     private int bulletsHit = 0;
     private int bulletsMissed = 0;
 
+    private long lastHitTime = 0;
+    private final long HIT_COOLDOWN = 50;
+
     public Aim() throws Exception {
         loadImages();
         loadBulletImage();
@@ -44,7 +47,6 @@ class Aim {
             File aimFile = new File(path);
             if (aimFile.exists()) {
                 aimImage = ImageIO.read(aimFile);
-                System.out.println("Загружен прицел aim.png: " + path);
                 aimLoaded = true;
                 break;
             }
@@ -60,13 +62,11 @@ class Aim {
             File aimFile = new File(path);
             if (aimFile.exists()) {
                 aimImage1 = ImageIO.read(aimFile);
-                System.out.println("Загружен прицел aim1.png: " + path);
                 aimLoaded = true;
                 break;
             }
         }
         if (!aimLoaded) {
-            System.out.println("Внимание: Файл aim1.png не найден. Будет использован aim.png для обоих режимов.");
             aimImage1 = aimImage;
         }
     }
@@ -79,14 +79,11 @@ class Aim {
                 File bulletFile = new File(path);
                 if (bulletFile.exists()) {
                     bulletImage = ImageIO.read(bulletFile);
-                    System.out.println("Загружена пуля: " + path);
                     return;
                 }
             }
-            System.out.println("Файл bullet.png не найден. Используется стандартная пуля.");
             bulletImage = createDefaultBulletImage();
         } catch (Exception e) {
-            System.out.println("Ошибка загрузки bullet.png: " + e.getMessage());
             bulletImage = createDefaultBulletImage();
         }
     }
@@ -104,7 +101,7 @@ class Aim {
 
     public void updatePosition(int bodyX, int bodyY, int mouseX, int mouseY,
                                boolean rightMousePressed, boolean leftMousePressed,
-                               double bodyLookAngle) {
+                               double bodyLookAngle, java.util.List<Wall> walls) {
         this.bodyX = bodyX;
         this.bodyY = bodyY;
         this.mouseX = mouseX;
@@ -132,7 +129,7 @@ class Aim {
             calculateAimPosition();
         }
 
-        updateBullets();
+        updateBullets(walls);
     }
 
     private void fireSingle() {
@@ -187,21 +184,78 @@ class Aim {
         }
     }
 
-    private void updateBullets() {
-        int activeBefore = bullets.size();
-        bullets.removeIf(bullet -> !bullet.isActive());
-        int activeAfter = bullets.size();
-        int disappeared = activeBefore - activeAfter;
-        bulletsMissed += disappeared;
+    private void updateBullets(java.util.List<Wall> walls) {
+        // Обновляем все пули и проверяем коллизии
+        for (int i = 0; i < bullets.size(); i++) {
+            Bullet bullet = bullets.get(i);
+            if (!bullet.isActive()) continue;
 
-        for (Bullet bullet : bullets) {
+            // Сохраняем старую позицию
+            int oldX = bullet.getX();
+            int oldY = bullet.getY();
+
+            // Обновляем пулю
             bullet.update();
+
+            // Проверяем выход за пределы экрана
+            if (bullet.getX() < -100 || bullet.getX() > 1100 ||
+                    bullet.getY() < -100 || bullet.getY() > 900) {
+                bullet.deactivate();
+                bulletsMissed++;
+                continue;
+            }
+
+            // Проверяем коллизии со стенами
+            if (walls != null && !walls.isEmpty()) {
+                // Используем улучшенную проверку коллизий по всей траектории
+                boolean hitWall = checkBulletWallCollision(bullet, oldX, oldY, walls);
+                if (hitWall) {
+                    bullet.deactivate();
+                }
+            }
         }
+
+        // Удаляем неактивные пули
+        bullets.removeIf(bullet -> !bullet.isActive());
     }
 
-    public void registerHit() {
-        bulletsHit++;
-        bulletsMissed--;
+    // НОВЫЙ МЕТОД: Улучшенная проверка коллизий пули со стенами
+    private boolean checkBulletWallCollision(Bullet bullet, int oldX, int oldY, java.util.List<Wall> walls) {
+        int newX = bullet.getX();
+        int newY = bullet.getY();
+
+        // Используем алгоритм Брезенхэма для проверки ВСЕХ пикселей на пути пули
+        int steps = Math.max(Math.abs(newX - oldX), Math.abs(newY - oldY));
+        if (steps == 0) return false;
+
+        // Увеличиваем количество проверяемых точек в зависимости от расстояния
+        int checkPoints = Math.max(steps, 10);
+
+        for (int i = 0; i <= checkPoints; i++) {
+            float t = (float)i / checkPoints;
+            int checkX = (int)(oldX + t * (newX - oldX));
+            int checkY = (int)(oldY + t * (newY - oldY));
+
+            // Проверяем каждую точку на пути пули
+            for (Wall wall : walls) {
+                if (wall.collidesWithPoint(checkX, checkY)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean registerHit() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastHitTime >= HIT_COOLDOWN) {
+            bulletsHit++;
+            bulletsMissed--;
+            lastHitTime = currentTime;
+            return true;
+        }
+        return false;
     }
 
     private void calculateAimPosition() {
