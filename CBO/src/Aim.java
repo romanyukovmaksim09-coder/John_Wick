@@ -198,12 +198,12 @@ class Aim {
             bullet.update();
 
             // Проверяем выход за пределы экрана
-            if (bullet.getX() < -100 || bullet.getX() > 1100 ||
-                    bullet.getY() < -100 || bullet.getY() > 900) {
-                bullet.deactivate();
-                bulletsMissed++;
-                continue;
-            }
+            //if (bullet.getX() < -100 || bullet.getX() > 1100 ||
+            //        bullet.getY() < -100 || bullet.getY() > 900) {
+            //    bullet.deactivate();
+            //    bulletsMissed++;
+            //    continue;
+            //}
 
             // Проверяем коллизии со стенами
             if (walls != null && !walls.isEmpty()) {
