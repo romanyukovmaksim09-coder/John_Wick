@@ -7,6 +7,11 @@ class Target {
     private Aim aim;
     private Color color = Color.RED;
 
+    private boolean wasHit = false;
+    private long hitTime = 0;
+    private final long HIT_DURATION = 100;
+    private final double HIT_THRESHOLD = 1.2;
+
     public Target(int x, int y, int radius, Aim aim) {
         this.x = x;
         this.y = y;
@@ -15,24 +20,35 @@ class Target {
     }
 
     public void update(ArrayList<Bullet> bullets) {
-        for (Bullet bullet : bullets) {
-            if (bullet.isActive()) {
-                // Используем улучшенную проверку попадания
-                if (bullet.hitsTarget(x, y, radius)) {
-                    bullet.deactivate();
-                    aim.registerHit();
-                    color = Color.GREEN;
+        // Сбрасываем цвет, если прошло достаточно времени
+        if (wasHit && System.currentTimeMillis() - hitTime >= HIT_DURATION) {
+            color = Color.RED;
+            wasHit = false;
+        }
 
-                    // Сбрасываем цвет через 100 мс
-                    new java.util.Timer().schedule(
-                            new java.util.TimerTask() {
-                                public void run() {
-                                    color = Color.RED;
-                                }
-                            },
-                            100
-                    );
-                    break; // Обрабатываем только одно попадание за кадр
+        // Проверяем попадания только если мишень не в состоянии попадания
+        if (!wasHit) {
+            for (Bullet bullet : bullets) {
+                if (bullet.isActive()) {
+                    // Более строгая проверка попадания
+                    if (bullet.hitsTarget(x, y, (int)(radius * HIT_THRESHOLD))) {
+                        bullet.deactivate();
+
+                        // Регистрируем попадание только если пуля была близко к центру
+                        double distance = Math.sqrt(
+                                Math.pow(bullet.getX() - x, 2) +
+                                        Math.pow(bullet.getY() - y, 2)
+                        );
+
+                        if (distance <= radius * 1.5) { // Только если пуля действительно близко
+                            if (aim.registerHit()) {
+                                color = Color.GREEN;
+                                wasHit = true;
+                                hitTime = System.currentTimeMillis();
+                            }
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -41,9 +57,15 @@ class Target {
     public void draw(Graphics g) {
         g.setColor(color);
         g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
+
         g.setColor(Color.BLACK);
         g.drawOval(x - radius, y - radius, radius * 2, radius * 2);
-        //g.drawString("Мишень", x - 20, y - radius - 5);
+
+        g.setColor(Color.WHITE);
+        g.fillOval(x - radius/4, y - radius/4, radius/2, radius/2);
+
+        g.setColor(Color.BLACK);
+        g.drawOval(x - radius/4, y - radius/4, radius/2, radius/2);
     }
 
     public int getX() { return x; }
