@@ -4,7 +4,7 @@ public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                JFrame frame = new JFrame("Тело и Ноги с Прицелом");
+                JFrame frame = new JFrame("Тело и Ноги с Прицелом и Стенами");
                 Body body = new Body();
                 Legs legs = new Legs(500, 300);
                 Aim aim = new Aim();
