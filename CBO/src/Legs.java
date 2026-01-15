@@ -41,8 +41,8 @@ class Legs {
     private final int ROTATION_CENTER_OFFSET = 25;
     private final int RIGHT_IMAGE_OFFSET = 10;
 
-    private final int BASE_SPEED = 12;
-    private final int RUN_SPEED = 22;
+    private final int BASE_SPEED = 10;
+    private final int RUN_SPEED = 15;
 
     private final double IDLE_ANIMATION_SPEED = 0.2;
     private final double WALK_ANIMATION_SPEED = 0.5;
