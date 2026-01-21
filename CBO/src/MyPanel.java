@@ -34,17 +34,17 @@ class MyPanel extends JPanel {
         this.legs = legs;
         this.aim = aim;
 
-        target = new Target(700, 400, 50, aim);
+        target = new Target(500, 200, 50, aim);
 
         try {
-            walls.add(new Wall(200, 200, 150, 20));
-            walls.add(new Wall(500, 400, 200, 20));
-            walls.add(new Wall(100, 600, 300, 20));
-            walls.add(new Wall(400, 100, 20, 150));
-            walls.add(new Wall(700, 300, 20, 200));
-            walls.add(new Wall(300, 500, 20, 100));
-            walls.add(new Wall(600, 100, 80, 80));
-            walls.add(new Wall(800, 500, 60, 60));
+            walls.add(new Wall(200, 200, 100, 100));
+            walls.add(new Wall(500, 400, 100, 100));
+            walls.add(new Wall(100, 600, 100, 100));
+            walls.add(new Wall(400, 100, 100, 100));
+            walls.add(new Wall(700, 300, 100, 100));
+            walls.add(new Wall(300, 500, 100, 100));
+            walls.add(new Wall(600, 100, 100, 100));
+            walls.add(new Wall(800, 500, 100, 100));
         } catch (Exception e) {
             e.printStackTrace();
         }
