@@ -5,7 +5,7 @@ class Bullet {
     private int x, y;
     private int lastX, lastY;
     private double angle;
-    private final double speed = 100.0;
+    private final double speed = 90.0;
     private boolean active = true;
     private BufferedImage image;
     private int id;
